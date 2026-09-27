@@ -949,6 +949,7 @@ func (s *MinifluxServer) RegisterTools(mcpServer *server.MCPServer, filter toolF
 		if !filter.allows(toolDef.Tool.Name) {
 			continue
 		}
+		toolDef.Tool.Annotations = toolAnnotations[toolDef.Tool.Name]
 		mcpServer.AddTool(toolDef.Tool, toolDef.Handler)
 	}
 	return nil

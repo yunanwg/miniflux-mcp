@@ -146,6 +146,8 @@ Filtering applies to both transports.
 
 The Miniflux MCP Server provides **40+ tools** covering all Miniflux API functionality, which can be found in the [Miniflux API Reference](https://miniflux.app/docs/api.html#go-client).
 
+Every tool carries MCP [tool annotations](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#tool-annotations) (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`), so clients can ask for confirmation before destructive calls such as `delete_feed` or `mark_all_as_read`. `openWorldHint` is set only on tools that make Miniflux contact the wider internet (fetching feeds or pages, pushing to integrations).
+
 Entry lists (`get_entries`, `get_feed_entries`, and `get_category_entries`) retain article content, metadata, and pagination totals, but return only compact nested feed metadata: `id`, `title`, `feed_url`, `disabled`, and category `id`/`title` when available. Use `get_feed` for full feed details, including configuration and parsing errors.
 
 ### Feed Management (11 tools)
