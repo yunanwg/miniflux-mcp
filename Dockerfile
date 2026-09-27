@@ -1,4 +1,9 @@
-FROM golang:1.26-alpine AS builder
+# Build on the native platform and cross-compile for the target: Go needs no
+# emulation to do that, so multi-platform builds stay fast.
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 ARG VERSION=dev
 ARG REVISION=unknown
@@ -16,7 +21,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build \
     -ldflags "-X main.Version=${VERSION} -X main.Revision=${REVISION} -X main.BuildDate=${BUILD_DATE}" \
     -o miniflux-mcp .
 
