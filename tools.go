@@ -100,7 +100,9 @@ func entryFilterProperties(extra map[string]interface{}) map[string]interface{} 
 	return properties
 }
 
-func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
+// RegisterTools registers the tools selected by filter. It fails without
+// registering anything if the filter names a tool that does not exist.
+func (s *MinifluxServer) RegisterTools(mcpServer *server.MCPServer, filter toolFilter) error {
 	tools := []ToolDefinition{
 		// Feed Operations
 		{
@@ -935,8 +937,19 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		},
 	}
 
-	// Register all tools
+	names := make([]string, 0, len(tools))
 	for _, toolDef := range tools {
+		names = append(names, toolDef.Tool.Name)
+	}
+	if err := filter.validate(names); err != nil {
+		return err
+	}
+
+	for _, toolDef := range tools {
+		if !filter.allows(toolDef.Tool.Name) {
+			continue
+		}
 		mcpServer.AddTool(toolDef.Tool, toolDef.Handler)
 	}
+	return nil
 }

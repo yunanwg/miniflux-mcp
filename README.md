@@ -125,6 +125,23 @@ Add the remote server to your project-level `.mcp.json`:
 
 The unauthenticated health endpoint is available at `/healthz`. For deployment outside a trusted private network, put the server behind an HTTPS reverse proxy so the Bearer token is encrypted in transit. One server process uses one configured Miniflux identity, so every connected MCP client has that identity's permissions.
 
+## Restricting Tools
+
+Every tool is registered by default. To expose a subset, set exactly one of:
+
+| Variable | Description |
+|----------|-------------|
+| `MCP_TOOLS_ALLOW` | Register only these tools |
+| `MCP_TOOLS_DENY` | Register every tool except these |
+
+Both take tool names separated by commas or whitespace. Setting both, or naming a tool that does not exist, is a startup error, so a typo cannot silently expose a tool you meant to hide. For example, to keep account administration out of reach of a shared or remote client:
+
+```bash
+MCP_TOOLS_DENY=get_users,get_user_by_id,get_user_by_username,create_user,delete_user,get_api_keys,create_api_key,delete_api_key,flush_history
+```
+
+Filtering applies to both transports.
+
 ## Available Tools
 
 The Miniflux MCP Server provides **40+ tools** covering all Miniflux API functionality, which can be found in the [Miniflux API Reference](https://miniflux.app/docs/api.html#go-client).

@@ -634,13 +634,21 @@ func main() {
 	}
 	log.Printf("Starting miniflux-mcp version=%s revision=%s build_date=%s", Version, Revision, BuildDate)
 
+	filter, err := loadToolFilter()
+	if err != nil {
+		log.Fatalf("Invalid tool filter configuration: %v", err)
+	}
+
 	minifluxServer := NewMinifluxServer()
 	mcpServer := server.NewMCPServer(
 		"miniflux-mcp",
 		Version,
 		server.WithLogging(),
 	)
-	minifluxServer.RegisterAllTools(mcpServer)
+	if err := minifluxServer.RegisterTools(mcpServer, filter); err != nil {
+		log.Fatalf("Invalid tool filter configuration: %v", err)
+	}
+	log.Printf("Registered %d tools", len(mcpServer.ListTools()))
 
 	if err := serveMCP(mcpServer, transport); err != nil {
 		log.Fatalf("Server failed: %v", err)
