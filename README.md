@@ -77,14 +77,18 @@ Add the following `.mcp.json` file to your project root:
 
 ## Remote Streamable HTTP Server
 
-The remote server exposes a Streamable HTTP MCP endpoint protected by a static Bearer token.
+The remote server exposes a Streamable HTTP MCP endpoint protected by a static Bearer token, a Cloudflare Access application token, or either of the two.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MCP_TRANSPORT` | Set to `streamable-http` | `stdio` |
 | `MCP_HTTP_ADDR` | HTTP listen address | `:8080` |
 | `MCP_HTTP_PATH` | MCP endpoint path | `/mcp` |
-| `MCP_AUTH_TOKEN` | Bearer token protecting the MCP endpoint; required in HTTP mode | None |
+| `MCP_AUTH_TOKEN` | Bearer token protecting the MCP endpoint | None |
+| `MCP_CF_ACCESS_TEAM_DOMAIN` | Cloudflare Access team domain, e.g. `https://team.cloudflareaccess.com` (or just `team`) | None |
+| `MCP_CF_ACCESS_AUD` | Application Audience (AUD) tag of the Access application in front of the server | None |
+
+HTTP mode requires `MCP_AUTH_TOKEN`, the Cloudflare Access pair, or both. With both, a request is accepted if either credential is valid.
 
 Set a strong token and start the container with the Streamable HTTP transport:
 
@@ -122,6 +126,12 @@ Add the remote server to your project-level `.mcp.json`:
   }
 }
 ```
+
+### Behind Cloudflare Access
+
+Cloudflare Access (including its Managed OAuth for MCP clients) authenticates the user at the edge, then forwards the request with a signed `Cf-Access-Jwt-Assertion` header. It does not forward the client's `Authorization` header, so a Bearer token cannot be used on this path. Set `MCP_CF_ACCESS_TEAM_DOMAIN` and `MCP_CF_ACCESS_AUD` instead: the server verifies the token's signature against the team's published keys, its issuer, its audience and its expiry. Requests that reach the origin without going through Access, for example from another container on the same network, are rejected.
+
+You can keep `MCP_AUTH_TOKEN` set alongside it for clients that reach the server directly, such as a local agent on a loopback port.
 
 The unauthenticated health endpoint is available at `/healthz`. For deployment outside a trusted private network, put the server behind an HTTPS reverse proxy so the Bearer token is encrypted in transit. One server process uses one configured Miniflux identity, so every connected MCP client has that identity's permissions.
 
