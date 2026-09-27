@@ -29,10 +29,11 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+COPY --from=builder /app/miniflux-mcp /usr/local/bin/miniflux-mcp
 
-COPY --from=builder /app/miniflux-mcp .
+# The server needs no privileges and writes nothing to disk.
+USER nobody
 
 EXPOSE 8080
 
-CMD ["./miniflux-mcp"]
+CMD ["miniflux-mcp"]
